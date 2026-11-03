@@ -32,6 +32,14 @@ const sh = (t) => {
   u.overlay.classList.add("show");
 };
 const hi = () => u.overlay.classList.remove("show");
+let requestId = 0;
+const invalidate = () => {
+  requestId++;
+  hi();
+};
+const hideAfter = (id, delay) => setTimeout(() => {
+  if (id === requestId) hi();
+}, delay);
 const rnd = () => `#${Math.floor(Math.random() * 16777216).toString(16).padStart(6, "0")}`;
 const ok = (t) => /^("?[\w:.-]+"?)(="?[^"]+"?)?$/.test(t.trim());
 const clearChart = () => {
@@ -41,6 +49,7 @@ const clearChart = () => {
   u.canvas.width = u.canvas.width;
 };
 const clr = () => {
+  invalidate();
   clearChart();
   bad.clear();
 };
@@ -80,15 +89,13 @@ const openOverpass = (t, d) => {
   if (!t || !d) return;
   const a = areaSel();
   const q = overQ(t, d, a);
-  const w = window.open(
-    `https://overpass-turbo.eu/?Q=${encodeURIComponent(q)}`,
-    "_blank",
-    "noopener"
-  );
-  w ||
-    alert(
-      "El navegador ha bloqueado la nueva pestaña. Permite popups para este sitio."
-    );
+  const w = window.open("about:blank", "_blank");
+  if (!w) {
+    alert("El navegador ha bloqueado la nueva pestaña. Permite popups para este sitio.");
+    return;
+  }
+  w.opener = null;
+  w.location.replace(`https://overpass-turbo.eu/?Q=${encodeURIComponent(q)}`);
 };
 const chrono = async (t, s) => {
   const [kRaw, vRaw] = t.split("=");
@@ -277,6 +284,7 @@ const chips = () => {
       }
     };
     remove.onclick = () => {
+      invalidate();
       m.delete(t);
       bad.delete(t);
       chips();
@@ -290,12 +298,14 @@ const chips = () => {
 };
 const run = async () => {
   if (!m.size) return;
+  const id = ++requestId;
   sh("Consultando Taginfo…");
   try {
     const s = site();
     bad.clear();
     const tags = [...m.keys()];
     const res = await Promise.allSettled(tags.map((t) => chrono(t, s)));
+    if (id !== requestId) return;
     const okRs = [],
       errMsg = [];
     res.forEach((r, i) => {
@@ -314,17 +324,18 @@ const run = async () => {
     history.replaceState(null, "", `${location.pathname}?${q.toString()}`);
     if (errMsg.length) {
       u.status.textContent = "⚠️ Parcial: " + errMsg.join(" · ");
-      setTimeout(hi, 2000);
+      hideAfter(id, 2000);
       return;
     }
   } catch (e) {
+    if (id !== requestId) return;
     clearChart();
     chips();
     u.status.textContent = "❌ " + e.message;
-    setTimeout(hi, 1600);
+    hideAfter(id, 1600);
     return;
   }
-  setTimeout(hi, 600);
+  hideAfter(id, 600);
 };
 const csv = () => {
   if (!c) return;
@@ -397,6 +408,7 @@ u.clear.onclick = () => {
   clr();
 };
 u.gen.onclick = run;
+u.base.addEventListener("input", invalidate);
 u.reset.onclick = () => c?.resetZoom?.();
 u.autoY.onclick = autoY;
 u.exportCSV.onclick = csv;
