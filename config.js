@@ -1,0 +1,23 @@
+const TAGINFO_SITES = [
+  { url: "https://taginfo.openstreetmap.org", label: "Global" },
+  { url: "https://taginfo.geofabrik.de/europe:spain", label: "España" },
+  { url: "https://taginfo.geofabrik.de/europe:spain:andalucia", label: "España · Andalucía" },
+  { url: "https://taginfo.geofabrik.de/europe:spain:aragon", label: "España · Aragón" },
+  { url: "https://taginfo.geofabrik.de/europe:spain:asturias", label: "España · Asturias" },
+  { url: "https://taginfo.geofabrik.de/europe:spain:cantabria", label: "España · Cantabria" },
+  { url: "https://taginfo.geofabrik.de/europe:spain:castilla-la-mancha", label: "España · Castilla-La Mancha" },
+  { url: "https://taginfo.geofabrik.de/europe:spain:castilla-y-leon", label: "España · Castilla y León" },
+  { url: "https://taginfo.geofabrik.de/europe:spain:cataluna", label: "España · Cataluña" },
+  { url: "https://taginfo.geofabrik.de/europe:spain:ceuta", label: "España · Ceuta" },
+  { url: "https://taginfo.geofabrik.de/europe:spain:extremadura", label: "España · Extremadura" },
+  { url: "https://taginfo.geofabrik.de/europe:spain:galicia", label: "España · Galicia" },
+  { url: "https://taginfo.geofabrik.de/europe:spain:islas-baleares", label: "España · Islas Baleares" },
+  { url: "https://taginfo.geofabrik.de/europe:spain:la-rioja", label: "España · La Rioja" },
+  { url: "https://taginfo.geofabrik.de/europe:spain:madrid", label: "España · Madrid" },
+  { url: "https://taginfo.geofabrik.de/europe:spain:melilla", label: "España · Melilla" },
+  { url: "https://taginfo.geofabrik.de/europe:spain:murcia", label: "España · Murcia" },
+  { url: "https://taginfo.geofabrik.de/europe:spain:navarra", label: "España · Navarra" },
+  { url: "https://taginfo.geofabrik.de/europe:spain:pais-vasco", label: "España · País Vasco" },
+  { url: "https://taginfo.geofabrik.de/europe:spain:valencia", label: "España · Valencia" },
+  { url: "https://taginfo.geofabrik.de/africa:canary-islands", label: "España · Islas Canarias" }
+];

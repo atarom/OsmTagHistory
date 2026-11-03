@@ -1,0 +1,237 @@
+:root {
+  --bg: #0a0a0b;
+  --panel: #131416;
+  --panel2: #1e1f22;
+  --muted: #a7b0bb;
+  --fg: #f2f4f6;
+  --accent: #45d1ff;
+  --err: #ff6b6b;
+  --chip: #242428;
+  --brd: rgba(255, 255, 255, 0.12);
+  --brd2: rgba(255, 255, 255, 0.18);
+  --shadow: 0 0 20px rgba(0, 0, 0, 0.55);
+}
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+html,
+body {
+  height: 100%;
+}
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto,
+    "Helvetica Neue", Arial;
+  font-size: 15px;
+  line-height: 1.25;
+}
+main {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  padding: 12px;
+  gap: 12px;
+}
+#topRow,
+#chipsRow,
+#chartWrap {
+  background: var(--panel2);
+  border: 1px solid var(--brd2);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+}
+#topRow {
+  display: flex;
+  gap: 14px;
+  padding: 14px;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+#siteWrap,
+#actions,
+#inputWrap,
+#ops {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+#sitePreset,
+#siteBase,
+#tagInput,
+button {
+  background: var(--panel);
+  color: var(--fg);
+  border: 1px solid var(--brd);
+  padding: 9px 12px;
+  border-radius: 6px;
+  transition: border-color 0.12s, background 0.12s;
+}
+#sitePreset {
+  min-width: 220px;
+}
+#siteBase {
+  min-width: 260px;
+}
+#tagInput {
+  min-width: 200px;
+}
+button {
+  cursor: pointer;
+  font-weight: 500;
+}
+button:hover {
+  border-color: var(--accent);
+  background: rgba(69, 209, 255, 0.12);
+}
+button:focus {
+  outline: 2px solid rgba(69, 209, 255, 0.4);
+}
+#chipsRow {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  overflow: auto;
+  padding: 12px;
+  min-height: 52px;
+}
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  background: var(--chip);
+  border: 1px solid var(--brd);
+  border-radius: 999px;
+  color: var(--fg);
+  font-size: 13px;
+}
+.tag .lbl {
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tag input[type="color"] {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  background: #fff;
+}
+.tag button {
+  background: transparent;
+  border: none;
+  color: var(--err);
+  cursor: pointer;
+  font-size: 15px;
+  padding: 0;
+  margin-left: 4px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.tag:hover button {
+  opacity: 1;
+}
+.tag.bad {
+  border-color: rgba(255, 107, 107, 0.65) !important;
+  background: rgba(255, 107, 107, 0.08) !important;
+}
+.tag.bad .lbl {
+  color: #ffd2d2;
+}
+#chartWrap {
+  flex: 1;
+  padding: 12px;
+  display: flex;
+  align-items: stretch;
+  overflow: hidden;
+}
+#chart {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+#overlay {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 60;
+  backdrop-filter: blur(2px);
+}
+#overlay.show {
+  display: flex;
+}
+#status {
+  color: var(--accent);
+  padding: 16px 24px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.75);
+  border: 1px solid rgba(69, 209, 255, 0.25);
+  box-shadow: var(--shadow);
+  font-size: 16px;
+}
+@media (max-width: 900px) {
+  #siteBase {
+    min-width: 150px;
+  }
+  #tagInput {
+    min-width: 130px;
+    height: 40px;
+  }
+  #chipsRow {
+    min-height: 40px;
+  }
+}
+@media (max-width: 600px) {
+  main {
+    height: 100dvh;
+    padding: 8px;
+    gap: 8px;
+  }
+  #topRow {
+    padding: 10px;
+    gap: 10px;
+  }
+  #siteWrap,
+  #actions,
+  #inputWrap,
+  #ops {
+    width: 100%;
+    min-width: 0;
+  }
+  #siteWrap,
+  #actions {
+    flex-wrap: wrap;
+  }
+  #sitePreset,
+  #siteBase {
+    width: 100%;
+    min-width: 0;
+  }
+  #tagInput {
+    flex: 1;
+    min-width: 0;
+  }
+  #ops {
+    justify-content: space-between;
+  }
+  #ops button {
+    flex: 1;
+  }
+  #topRow button {
+    min-height: 40px;
+  }
+  #chipsRow {
+    padding: 8px;
+  }
+}

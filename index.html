@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Taginfo · Historial de etiquetas OSM</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/2.2.0/chartjs-plugin-zoom.min.js"></script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+  <section id="topRow">
+    <div id="siteWrap"><select id="sitePreset" aria-label="Seleccionar sitio"></select><input id="siteBase" placeholder="Base Taginfo (opcional)"></div>
+    <div id="actions">
+      <div id="inputWrap"><input id="tagInput" placeholder="key o key=value" autocomplete="off" aria-label="Introducir tag"><button id="addTag" title="Añadir">+</button><button id="clearTags" title="Limpiar">🗑️</button></div>
+      <div id="ops"><button id="gen" title="Generar gráfico">📈</button><button id="resetZoom" title="Reset zoom">🔍</button><button id="autoY" title="Auto-escala Y">📐</button><button id="exportCSV" title="Exportar CSV">⬇️</button></div>
+    </div>
+  </section>
+  <section id="chipsRow" aria-live="polite"></section>
+  <section id="chartWrap"><canvas id="chart"></canvas></section>
+  <div id="overlay"><span id="status">Cargando…</span></div>
+</main>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
