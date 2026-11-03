@@ -11,4 +11,4 @@ OSM Tag History representa la evolución de etiquetas `key` y `key=value` median
 
 ## Tecnologías y datos
 
-Aplicación estática creada con HTML, CSS y JavaScript. Utiliza [Chart.js](https://www.chartjs.org/) y [chartjs-plugin-zoom](https://www.chartjs.org/chartjs-plugin-zoom/latest/) para visualizar los datos históricos de [Taginfo](https://taginfo.openstreetmap.org/) y sus instancias regionales de [Geofabrik](https://taginfo.geofabrik.de/). Las consultas detalladas se abren en [Overpass Turbo](https://overpass-turbo.eu/).
+[Chart.js](https://www.chartjs.org/) y [chartjs-plugin-zoom](https://www.chartjs.org/chartjs-plugin-zoom/latest/) para visualizar los datos históricos de [Taginfo](https://taginfo.openstreetmap.org/) y sus instancias regionales de [Geofabrik](https://taginfo.geofabrik.de/). Las consultas detalladas se abren en [Overpass Turbo](https://overpass-turbo.eu/).
