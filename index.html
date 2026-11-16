@@ -3,24 +3,38 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Taginfo · Historial de etiquetas OSM</title>
+<title>OSM Tag History · Historial de etiquetas OSM</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/2.2.0/chartjs-plugin-zoom.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@10.11.0/ol.css">
+<script src="https://cdn.jsdelivr.net/npm/ol@10.11.0/dist/ol.js"></script>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <main>
-  <section id="topRow">
-    <div id="siteWrap"><select id="sitePreset" aria-label="Seleccionar sitio"></select><input id="siteBase" placeholder="Base Taginfo (opcional)"></div>
-    <div id="actions">
-      <div id="inputWrap"><input id="tagInput" placeholder="key o key=value" autocomplete="off" aria-label="Introducir tag"><button id="addTag" title="Añadir">+</button><button id="clearTags" title="Limpiar">🗑️</button></div>
-      <div id="ops"><button id="gen" title="Generar gráfico">📈</button><button id="resetZoom" title="Reset zoom">🔍</button><button id="autoY" title="Auto-escala Y">📐</button><button id="exportCSV" title="Exportar CSV">⬇️</button></div>
-    </div>
-  </section>
-  <section id="chipsRow" aria-live="polite"></section>
-  <section id="chartWrap"><canvas id="chart"></canvas></section>
-  <div id="overlay"><span id="status">Cargando…</span></div>
+<section id="topRow">
+<div id="engineWrap"><label for="engine">Motor</label><select id="engine" aria-label="Motor de consulta"><option value="taginfo">Taginfo</option><option value="ohsome">ohsome v2</option></select></div>
+<div id="siteWrap"><select id="sitePreset" aria-label="Seleccionar ámbito Taginfo"></select><input id="siteBase" placeholder="Base Taginfo (opcional)" aria-label="URL de la instancia Taginfo"></div>
+<div id="actions">
+<div id="inputWrap"><input id="tagInput" placeholder="key o key=value" autocomplete="off" aria-label="Introducir etiqueta"><button id="addTag" title="Añadir etiqueta" aria-label="Añadir etiqueta">+</button><button id="clearTags" title="Limpiar etiquetas" aria-label="Limpiar etiquetas">🗑️</button></div>
+<div id="ops"><button id="gen" title="Generar gráfico" aria-label="Generar gráfico">📈</button><button id="resetZoom" title="Restablecer zoom" aria-label="Restablecer zoom">🔍</button><button id="autoY" title="Autoescala Y" aria-label="Autoescala Y">📐</button><button id="exportCSV" title="Exportar CSV" aria-label="Exportar CSV">⬇️</button></div>
+</div>
+</section>
+<section id="ohsomeSettings" hidden>
+<div class="ohrow"><div class="ohfield ohkey"><label for="ohKey">API key de ohsome</label><input id="ohKey" type="password" autocomplete="off" spellcheck="false" placeholder="Introduce tu clave"></div><button id="ohSaveKey">Guardar clave</button><button id="ohForgetKey">Borrar clave</button><span id="ohKeyStatus" role="status"></span></div>
+<div class="ohrow"><div class="ohfield"><label for="ohAreaMode">Área</label><select id="ohAreaMode"><option value="world">Todo el mundo</option><option value="bbox">BBOX personalizado</option></select></div><div class="ohfield"><label for="ohStart">Desde</label><input id="ohStart" type="date" value="2015-01-01" min="2007-10-08"></div><div class="ohfield"><label for="ohEnd">Hasta</label><input id="ohEnd" type="date"></div><div class="ohfield"><label for="ohInterval">Intervalo</label><select id="ohInterval"><option value="P1Y">Anual</option><option value="P1M">Mensual</option><option value="P1W">Semanal</option><option value="P1D">Diario</option></select></div></div>
+<div id="ohBboxPanel" hidden>
+<div class="bboxFields"><label>Oeste <input id="ohWest" type="number" step="any" min="-180" max="180"></label><label>Sur <input id="ohSouth" type="number" step="any" min="-90" max="90"></label><label>Este <input id="ohEast" type="number" step="any" min="-180" max="180"></label><label>Norte <input id="ohNorth" type="number" step="any" min="-90" max="90"></label><button id="ohApplyBbox">Aplicar BBOX</button></div>
+<div class="ohsummary"><span id="ohBboxStatus" role="status"></span><button id="ohSpainBbox">España (rectángulo)</button></div>
+<details id="ohMapDetails"><summary>Seleccionar BBOX en el mapa</summary><div id="ohMapTools"><button id="ohDrawBbox">Dibujar BBOX</button><button id="ohViewBbox">Usar vista actual</button></div><div id="ohMap" aria-label="Mapa OpenLayers para seleccionar un rectángulo geográfico"></div><p class="ohhint">Activa «Dibujar BBOX» y arrastra sobre el mapa. Las coordenadas pueden editarse manualmente.</p></details>
+</div>
+<div class="ohfooter"><span>El motor ohsome utiliza recuentos históricos por instantánea; Taginfo mantiene su cronología propia.</span><a href="https://account.heigit.org/" target="_blank" rel="noopener noreferrer">Obtener API key</a></div>
+</section>
+<section id="chipsRow" aria-live="polite"></section>
+<section id="chartWrap"><canvas id="chart"></canvas></section>
+<p id="resultNote" role="status" aria-live="polite"></p>
+<div id="overlay" role="status" aria-live="polite"><span id="status">Cargando…</span></div>
 </main>
 <script src="config.js"></script>
 <script src="app.js"></script>
