@@ -1,6 +1,7 @@
 const $ = (s) => document.querySelector(s);
 const m = new Map();
 const bad = new Set();
+const matchModes = new Map();
 let c = null;
 let L = [];
 let requestId = 0;
@@ -40,6 +41,18 @@ const hi = () => u.overlay.classList.remove("show");
 const hideAfter = (id, delay) => setTimeout(() => { if (id === requestId) hi(); }, delay);
 const rnd = () => `#${Math.floor(Math.random() * 16777216).toString(16).padStart(6, "0")}`;
 const ok = (t) => /^("?[\w:.-]+"?)(="?[^"]+"?)?$/.test(t.trim());
+const splitTags = (raw) => {
+  const parts = [];
+  let token = "";
+  let quoted = false;
+  for (const char of raw) {
+    if (char === "\"") quoted = !quoted;
+    if (!quoted && (char === "," || char === ";" || char === "\n")) { parts.push(token.trim()); token = ""; }
+    else token += char;
+  }
+  parts.push(token.trim());
+  return parts.filter(Boolean);
+};
 const selectedEngine = () => u.engine.value;
 const stopRequest = () => { requestId++; controller?.abort(); controller = null; hi(); };
 const clearChart = () => { c?.destroy?.(); c = null; L = []; u.canvas.width = u.canvas.width; };
@@ -64,7 +77,7 @@ const tagSel = (t) => {
   const v = i < 0 ? undefined : t.slice(i + 1).replace(/^"|"$/g, "");
   return { k, v };
 };
-const overQ = (t, d) => {
+const overQ = (t, d, matchMode = "exact") => {
   const { k, v } = tagSel(t);
   const dt = d.includes("T") ? d : `${d}T00:00:00Z`;
   let q = `[out:xml][timeout:24][maxsize:512Mi][date:"${dt}"];\n`;
@@ -72,13 +85,15 @@ const overQ = (t, d) => {
   if (a) q += `{{geocodeArea:${a}}}->.searchArea;\n`;
   const b = selectedEngine() === "ohsome" && u.ohAreaMode.value === "bbox" ? `(${bbox[1]},${bbox[0]},${bbox[3]},${bbox[2]})` : a ? "(area.searchArea)" : "";
   const escapedKey = k.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
-  const escapedValue = v?.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
-  q += `nwr["${escapedKey}"${v !== undefined ? `="${escapedValue}"` : ""}]${b};\nout center;`;
+  const regexValue = matchMode === "contains" && v !== undefined ? v.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") : v;
+  const escapedValue = regexValue?.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+  const operator = matchMode === "contains" && v !== undefined ? "~" : "=";
+  q += `nwr["${escapedKey}"${v !== undefined ? `${operator}"${escapedValue}"` : ""}]${b};\nout center;`;
   return q;
 };
-const openOverpass = (t, d) => {
+const openOverpass = (t, d, matchMode) => {
   if (!t || !d) return;
-  const q = overQ(t, d);
+  const q = overQ(t, d, matchMode);
   const w = window.open("about:blank", "_blank");
   if (!w) { alert("El navegador ha bloqueado la nueva pestaña. Permite popups para este sitio."); return; }
   w.opener = null;
@@ -162,9 +177,9 @@ const initMap = () => {
   setBbox(bbox, true);
 };
 const filterTerm = (v) => /^[a-zA-Z0-9_:-]+$/.test(v) ? v : `"${v.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
-const filterTag = (t) => {
+const filterTag = (t, mode = "exact") => {
   const { k, v } = tagSel(t);
-  return `${filterTerm(k)}=${v === undefined ? "*" : filterTerm(v)}`;
+  return mode === "contains" && v !== undefined ? `${filterTerm(k)} ~ *${filterTerm(v)}*` : `${filterTerm(k)}=${v === undefined ? "*" : filterTerm(v)}`;
 };
 const ohConfig = () => {
   const key = u.ohKey.value.trim();
@@ -182,7 +197,7 @@ const ohConfig = () => {
   return { key, aoi, time: { start, end, interval } };
 };
 const chronoOhsome = async (t, config, signal) => {
-  const body = { aoi: config.aoi, filter: filterTag(t), time: config.time };
+  const body = { aoi: config.aoi, filter: filterTag(t, matchModes.get(t)), time: config.time };
   const r = await fetch("https://api.heigit.org/ohsome-api/v2/stats/features/count.json", { method: "POST", headers: { Authorization: config.key, "Content-Type": "application/json" }, body: JSON.stringify(body), signal });
   const j = await parseResponse(r);
   const dates = j.result?.timestamp;
@@ -198,7 +213,8 @@ const datasets = (rs) => {
     const first = L.findIndex((d) => d in lookup);
     let v = 0;
     const data = L.map((d, i) => { if (first === -1 || i < first) return 0; if (d in lookup) v = lookup[d]; return v; });
-    return { label: t, data, borderWidth: 2, tension: 0, borderColor: m.get(t), pointRadius: 0, spanGaps: false };
+    const matchMode = selectedEngine() === "ohsome" ? matchModes.get(t) : undefined;
+    return { label: matchMode === "contains" ? `${t} · Contiene` : t, tag: t, matchMode, data, borderWidth: 2, tension: 0, borderColor: m.get(t), pointRadius: 0, spanGaps: false };
   });
 };
 const col2 = ["#1dd16a", "#ff4b4b"];
@@ -208,15 +224,15 @@ const rank = (ds) => {
   const n = a.length;
   a.forEach((o, i) => {
     const { d } = o;
-    const t = d.label;
+    const t = d.tag || d.label;
     const col = n === 1 ? col3[0] : n === 2 ? col2[i] : i < 3 ? col3[i] : m.get(t) || rnd();
     m.set(t, col);
     d.borderColor = col;
     d._rank = i;
   });
   const ord = [...m.entries()].sort((A, B) => {
-    const da = ds.find((d) => d.label === A[0]);
-    const db = ds.find((d) => d.label === B[0]);
+    const da = ds.find((d) => (d.tag || d.label) === A[0]);
+    const db = ds.find((d) => (d.tag || d.label) === B[0]);
     return (da ? da._rank : 0) - (db ? db._rank : 0);
   });
   m.clear();
@@ -264,7 +280,7 @@ const draw = (lbl, ds) => {
         const y = ev.y ?? e?.offsetY ?? e?.clientY ?? 0;
         const i = xIdx(chart, x);
         const di = pickDS(chart, i, y);
-        if (di >= 0) openOverpass(chart.data.datasets[di]?.label, chart.data.labels[i]);
+        if (di >= 0) { const d = chart.data.datasets[di]; openOverpass(d?.tag || d?.label, chart.data.labels[i], d?.matchMode); }
       },
       plugins: {
         legend: { display: false },
@@ -294,18 +310,35 @@ const chips = () => {
     remove.type = "button";
     remove.setAttribute("aria-label", `Eliminar ${t}`);
     remove.textContent = "✖";
-    el.append(label, picker, remove);
+    el.append(label);
+    if (selectedEngine() === "ohsome" && tagSel(t).v !== undefined) {
+      const match = document.createElement("select");
+      match.className = "tagMatch";
+      match.setAttribute("aria-label", `Coincidencia de ${t}`);
+      match.title = "Exacta: solo el valor indicado. Contiene: cualquier subcadena, incluso dentro de valores separados por punto y coma.";
+      for (const [value, text] of [["exact", "Exacta"], ["contains", "Contiene"]]) {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = text;
+        match.append(option);
+      }
+      match.value = matchModes.get(t) || "exact";
+      match.onchange = () => { matchModes.set(t, match.value); stale(); };
+      el.append(match);
+    }
+    el.append(picker, remove);
     picker.oninput = (e) => {
       const v = e.target.value;
       m.set(t, v);
-      if (c) { const ds = c.data.datasets.find((d) => d.label === t); if (ds) { ds.borderColor = v; c.update("none"); } }
+      if (c) { const ds = c.data.datasets.find((d) => (d.tag || d.label) === t); if (ds) { ds.borderColor = v; c.update("none"); } }
     };
     remove.onclick = () => {
       stopRequest();
       m.delete(t);
+      matchModes.delete(t);
       bad.delete(t);
       chips();
-      if (c) { c.data.datasets = c.data.datasets.filter((d) => d.label !== t); c.data.datasets.length ? c.update() : clr(); }
+      if (c) { c.data.datasets = c.data.datasets.filter((d) => (d.tag || d.label) !== t); c.data.datasets.length ? c.update() : clr(); }
       else if (!m.size) clr();
     };
     u.chips.append(el);
@@ -340,7 +373,7 @@ const run = async () => {
     rank(ds);
     draw(L, ds);
     chips();
-    const q = engine === "taginfo" ? new URLSearchParams({ tags: tags.join(","), site: base }) : new URLSearchParams({ engine: "ohsome", tags: tags.join(","), area: u.ohAreaMode.value, start: conf.time.start, end: conf.time.end, interval: conf.time.interval, ...(u.ohAreaMode.value === "bbox" ? { bbox: bbox.join(",") } : {}) });
+    const q = engine === "taginfo" ? new URLSearchParams({ tags: tags.join(","), site: base }) : new URLSearchParams({ engine: "ohsome", tags: tags.join(","), matches: tags.map((t) => matchModes.get(t) === "contains" ? "c" : "e").join(""), area: u.ohAreaMode.value, start: conf.time.start, end: conf.time.end, interval: conf.time.interval, ...(u.ohAreaMode.value === "bbox" ? { bbox: bbox.join(",") } : {}) });
     history.replaceState(null, "", `${location.pathname}?${q.toString()}`);
     u.note.textContent = `${engine === "ohsome" ? "ohsome v2" : "Taginfo"} · ${okRs.length} serie(s) · ${L.length} fechas${errors.length ? ` · Errores: ${errors.join(" · ")}` : ""}`;
     if (errors.length) { u.note.classList.add("error"); hideAfter(id, 500); return; }
@@ -432,7 +465,8 @@ const initSaved = () => {
   showBbox(false);
   const tags = q.get("tags");
   if (tags) {
-    tags.split(/[,;]+/).map((t) => t.trim()).filter((t) => t && ok(t)).forEach((t) => m.set(t, rnd()));
+    const choices = q.get("matches") || "";
+    splitTags(tags).filter(ok).forEach((t, i) => { m.set(t, rnd()); if (u.engine.value === "ohsome" && choices[i] === "c") matchModes.set(t, "contains"); });
     chips();
     if (m.size) run();
   }
@@ -440,7 +474,7 @@ const initSaved = () => {
 u.add.onclick = () => {
   const raw = u.input.value.trim();
   if (!raw) return;
-  const parts = raw.split(/[,\n;]+/).map((s) => s.trim()).filter(Boolean);
+  const parts = splitTags(raw);
   const badFmt = parts.filter((p) => !ok(p));
   if (badFmt.length) { u.note.textContent = "Formato inválido: " + badFmt.join(", "); u.note.classList.add("error"); return; }
   parts.forEach((p) => { if (!m.has(p)) m.set(p, rnd()); });
@@ -449,7 +483,7 @@ u.add.onclick = () => {
   run();
 };
 u.input.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); u.add.click(); } });
-u.clear.onclick = () => { m.clear(); chips(); clr(); u.note.textContent = ""; u.note.classList.remove("error"); };
+u.clear.onclick = () => { m.clear(); matchModes.clear(); chips(); clr(); u.note.textContent = ""; u.note.classList.remove("error"); };
 u.gen.onclick = run;
 u.reset.onclick = () => c?.resetZoom?.();
 u.autoY.onclick = autoY;

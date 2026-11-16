@@ -48,6 +48,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 #chipsRow{display:flex;gap:10px;align-items:center;overflow:auto;padding:9px;min-height:52px;flex-shrink:0}
 .tag{display:inline-flex;align-items:center;gap:8px;padding:7px 10px;background:var(--chip);border:1px solid var(--brd);border-radius:999px;color:var(--fg);font-size:13px;flex-shrink:0}
 .tag .lbl{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tag .tagMatch{min-width:84px;max-width:100px;padding:5px 6px;font-size:12px;border-color:var(--brd2);height:30px;flex-shrink:0}
 .tag input[type=color]{width:22px;height:22px;border-radius:4px;border:0;padding:0;cursor:pointer;background:#fff}
 .tag button{background:transparent;border:0;color:var(--err);font-size:15px;padding:2px 5px;margin-left:4px}
 .tag button:hover{background:rgba(255,107,107,.12)}
