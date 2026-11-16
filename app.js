@@ -120,7 +120,7 @@ const drawOutline = () => {
   bboxSource.clear();
   const [w, s, e, n] = bbox;
   const clip = (lat) => Math.max(-85, Math.min(85, lat));
-  const ring = [[w, clip(s)], [e, clip(s)], [e, clip(n)], [w, clip(n)], [w, clip(s)]].map(ol.proj.fromLonLat);
+  const ring = [[w, clip(s)], [e, clip(s)], [e, clip(n)], [w, clip(n)], [w, clip(s)]].map((point) => ol.proj.fromLonLat(point));
   bboxSource.addFeature(new ol.Feature({ geometry: new ol.geom.Polygon([ring]) }));
 };
 const setBbox = (b, zoom = false) => {
